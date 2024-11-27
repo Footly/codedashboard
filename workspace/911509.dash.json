@@ -1,0 +1,16 @@
+{
+  "widgets": [
+    {
+      "name": "EHA_T12_EXPULSION SET",
+      "backend": "echo 'SET BSP_DATA_EHA_T12_EXPULSION ${out}' | socat - TCP:localhost:12345",
+      "interval": 1000,
+      "port": "out"
+    },
+    {
+      "name": "ODA_T21_EXTERIOR GET",
+      "backend": "echo 'GET BSP_DATA_ODA_T21_EXTERIOR' | socat - TCP:localhost:12345",
+      "interval": 1000,
+      "port": "in"
+    }
+  ]
+}
