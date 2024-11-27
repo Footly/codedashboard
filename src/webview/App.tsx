@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { messageHandler } from '@estruyf/vscode/dist/client';
 import "./styles.css";
+import Layout from './Layout'; // Import the Layout component
 
 export interface IAppProps {}
 
@@ -30,25 +31,7 @@ export const App: React.FunctionComponent<IAppProps> = ({ }: React.PropsWithChil
 
   return (
     <div className='app'>
-      <h1>Hello from the React Webview Starter</h1>
-
-      <div className='app__actions'>
-        <button onClick={sendMessage}>
-          Send message to extension
-        </button>
-
-        <button onClick={requestData}>
-          Get data from extension
-        </button>
-
-        <button onClick={requestWithErrorData}>
-          Get data with error
-        </button>
-      </div>
-
-      {message && <p><strong>Message from the extension</strong>: {message}</p>}
-
-      {error && <p className='app__error'><strong>ERROR</strong>: {error}</p>}
+      <Layout />
     </div>
   );
 };

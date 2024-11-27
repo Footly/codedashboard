@@ -4,13 +4,33 @@
       "name": "EHA_T12_EXPULSION SET",
       "backend": "echo 'SET BSP_DATA_EHA_T12_EXPULSION ${out}' | socat - TCP:localhost:12345",
       "interval": 1000,
-      "port": "out"
+      "type": "slider",
+      "props": {
+        "min": -10,
+        "max": 250,
+        "step": 1,
+        "defaultValue": 30
+      },
+      "x": 0,
+      "y": 0,
+      "w": 12,
+      "h": 1
     },
     {
-      "name": "ODA_T21_EXTERIOR GET",
-      "backend": "echo 'GET BSP_DATA_ODA_T21_EXTERIOR' | socat - TCP:localhost:12345",
+      "name": "EHA_T12_EXPULSION SET",
+      "backend": "echo 'SET BSP_DATA_EHA_T12_EXPULSION ${out}' | socat - TCP:localhost:12345",
       "interval": 1000,
-      "port": "in"
+      "type": "progress",
+      "props": {
+        "min": -10,
+        "max": 250,
+        "step": 1,
+        "value": 30
+      },
+      "x": 0,
+      "y": 0,
+      "w": 12,
+      "h": 1
     }
   ]
 }

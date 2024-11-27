@@ -3,14 +3,16 @@
 import { join } from 'path';
 import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, Uri, Webview } from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
 import { MessageHandlerData } from '@estruyf/vscode';
 
 export function activate(context: vscode.ExtensionContext) {
 
-	let disposable = vscode.commands.registerCommand('vscode-react-webview-starter.openWebview', () => {
+	let disposable = vscode.commands.registerCommand('codedashboard.openWebview', () => {
 		const panel = vscode.window.createWebviewPanel(
-			'react-webview',
-			'React Webview',
+			'codedashboardWebview',
+			'Code Dashboard',
 			vscode.ViewColumn.One,
 			{
 				enableScripts: true,
@@ -23,7 +25,6 @@ export function activate(context: vscode.ExtensionContext) {
 		
 			if (command === "GET_DATA") {
 				// Do something with the payload
-		
 				// Send a response back to the webview
 				panel.webview.postMessage({
 					command,
@@ -44,7 +45,72 @@ export function activate(context: vscode.ExtensionContext) {
 		panel.webview.html = getWebviewContent(context, panel.webview);
 	});
 
+	// Register the new command
+	const openDashboardWith = vscode.commands.registerCommand('codedashboard.openDashboardWith', async () => {
+
+		// Get the active text editor
+		const editor = vscode.window.activeTextEditor;
+
+		if (!editor) {
+			vscode.window.showErrorMessage('No active editor found');
+			return;
+		}
+
+		const filePath = editor.document.uri.fsPath;
+		// Ensure the selected file is a .dash.json file
+		if (filePath.endsWith('.dash.json')) {
+			// Proceed with the logic for creating the dashboard from this file
+
+			// Read the .dash.json file (or perform other operations based on the file)
+			try {
+				const data = fs.readFileSync(filePath, 'utf-8');
+				const jsonContent = JSON.parse(data);
+
+				const panel = vscode.window.createWebviewPanel(
+					'codedashboardWebview',
+					'Code Dashboard',
+					vscode.ViewColumn.One,
+					{
+						enableScripts: true,
+						retainContextWhenHidden: true
+					}
+				);
+
+				//Check if "widgets" key exists in the JSON content
+				if (!jsonContent.widgets) {
+					vscode.window.showErrorMessage('The .dash.json file does not contain a "widgets" key.');
+					return;
+				}
+
+				//Iterate over the widgets and create the dashboard
+				for (const widget of jsonContent.widgets) {
+					//Send a message to the webview with the widget data
+					panel.webview.postMessage({
+						command: 'ADD_WIDGET',
+						payload: widget
+					});
+				}
+
+				panel.webview.html = getWebviewContent(context, panel.webview);
+
+				// Perform further logic to create a dashboard, such as opening a UI, etc.
+				vscode.window.showInformationMessage(`Dashboard created from ${path.basename(filePath)}`);
+
+			} catch (err) {
+				if (err instanceof Error) {
+					vscode.window.showErrorMessage('Error reading .dash.json file: ' + err.message);
+				} else {
+					vscode.window.showErrorMessage('An unknown error occurred.');
+				}
+			}
+		} else {
+			vscode.window.showErrorMessage('The selected file is not a .dash.json file.');
+		}
+	});
+
+	context.subscriptions.push(openDashboardWith);
 	context.subscriptions.push(disposable);
+	
 }
 
 // this method is called when your extension is deactivated

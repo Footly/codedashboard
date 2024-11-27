@@ -20,7 +20,7 @@ const config = [
     module: {
       rules: [
         {
-          test: /\.(ts|tsx)$/,
+          test: /\.[jt]sx?$/, // Matches .js, .jsx, .ts, .tsx files
           exclude: /node_modules/,
           use: [{
             loader: 'ts-loader'
