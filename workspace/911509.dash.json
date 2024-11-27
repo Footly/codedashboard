@@ -1,7 +1,7 @@
 {
   "widgets": [
     {
-      "name": "EHA_T12_EXPULSION SET",
+      "name": "EHA_T12_EXPULSION",
       "backend": "echo 'SET BSP_DATA_EHA_T12_EXPULSION ${out}' | socat - TCP:localhost:12345",
       "interval": 1000,
       "type": "slider",
@@ -17,7 +17,7 @@
       "h": 1
     },
     {
-      "name": "EHA_T12_EXPULSION SET",
+      "name": "EHA_T22_EXPULSION",
       "backend": "echo 'SET BSP_DATA_EHA_T12_EXPULSION ${out}' | socat - TCP:localhost:12345",
       "interval": 1000,
       "type": "progress",

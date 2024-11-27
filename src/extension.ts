@@ -93,6 +93,23 @@ export function activate(context: vscode.ExtensionContext) {
 
 				panel.webview.html = getWebviewContent(context, panel.webview);
 
+				//Wait for 2 seconds
+				//Every 2 seconds, send a message to the webview to update the progress bar
+				setInterval(() => {
+					panel.webview.postMessage({
+						command: 'UPDATE',
+						payload: {
+							name: 'EHA_T22_EXPULSION',
+							props: {
+								value: Math.floor(Math.random() * 100),
+								min: 0,
+								max: 100
+							}
+						}
+					});
+				}, 2000);
+
+
 				// Perform further logic to create a dashboard, such as opening a UI, etc.
 				vscode.window.showInformationMessage(`Dashboard created from ${path.basename(filePath)}`);
 
