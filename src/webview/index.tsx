@@ -1,14 +1,21 @@
-const React = require('react');
-const ReactDOM = require('react-dom');
+import * as React from "react";
+import { render } from "react-dom";
+import { App } from "./App";
 
-import '@fontsource/roboto/300.css';
-import '@fontsource/roboto/400.css';
-import '@fontsource/roboto/500.css';
-import '@fontsource/roboto/700.css';
-import './style.css';
-import './dagre.css';
+declare const acquireVsCodeApi: <T = unknown>() => {
+  getState: () => T;
+  setState: (data: T) => void;
+  postMessage: (msg: unknown) => void;
+};
 
-// Component import
-import Sidebar from './components/Sidebar';
+const elm = document.querySelector("#root");
+if (elm) {
+  render(<App />, elm);
+}
 
-ReactDOM.render(<Sidebar />, document.getElementById('root') as HTMLElement);
+// Webpack HMR
+// @ts-expect-error
+if (import.meta.webpackHot) {
+  // @ts-expect-error
+  import.meta.webpackHot.accept()
+}
