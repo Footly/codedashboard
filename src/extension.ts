@@ -5,7 +5,19 @@ import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, Uri, Webview } from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
+const { exec } = require('child_process');
 import { MessageHandlerData } from '@estruyf/vscode';
+
+
+function getNonce() : string {
+	let text : string = "";
+	const possible : string =
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+	for (let i = 0; i < 32; i++) {
+		text += possible.charAt(Math.floor(Math.random() * possible.length));
+	}
+	return text;
+}
 
 export function activate(context: vscode.ExtensionContext) {
 
@@ -76,6 +88,49 @@ export function activate(context: vscode.ExtensionContext) {
 					}
 				);
 
+				//Create a listerner to receive messages from the webview
+				panel.webview.onDidReceiveMessage(message => {
+					const { command, requestId, payload } = message;
+				
+					if (command === "REQUEST") {
+						//Gte the payload widget backend
+						const backend = payload.widget.backend;
+						interface Message {
+							command: string;
+							requestId: string;
+							payload: any;
+						}
+
+						interface WidgetPayload {
+							widget: {
+								backend: string;
+							};
+						}
+
+						exec((backend as string), (error: Error | null, stdout: string, stderr: string) => {
+							if (error) {
+								vscode.window.showErrorMessage(`Error executing command: ${error.message}`);
+								return;
+							}
+							if (stderr) {
+								vscode.window.showWarningMessage(`Command completed with warnings: ${stderr}`);
+							}
+							const cloneWidget = { ...payload.widget };
+							//Cjamhe the cloneWidget.value to the stdout
+							cloneWidget.value = stdout;
+							panel.webview.postMessage({
+								command: 'UPDATE',
+								payload: {
+									widget: cloneWidget
+								}
+							} as Message);
+
+							// Optionally, show the result in VS Code UI
+							vscode.window.showInformationMessage(`Command executed successfully: ${stdout}`);
+						});
+					}
+				}, undefined, context.subscriptions);
+
 				//Check if "widgets" key exists in the JSON content
 				if (!jsonContent.widgets) {
 					vscode.window.showErrorMessage('The .dash.json file does not contain a "widgets" key.');
@@ -92,23 +147,6 @@ export function activate(context: vscode.ExtensionContext) {
 				}
 
 				panel.webview.html = getWebviewContent(context, panel.webview);
-
-				//Wait for 2 seconds
-				//Every 2 seconds, send a message to the webview to update the progress bar
-				setInterval(() => {
-					panel.webview.postMessage({
-						command: 'UPDATE',
-						payload: {
-							name: 'EHA_T22_EXPULSION',
-							props: {
-								value: Math.floor(Math.random() * 100),
-								min: 0,
-								max: 100
-							}
-						}
-					});
-				}, 2000);
-
 
 				// Perform further logic to create a dashboard, such as opening a UI, etc.
 				vscode.window.showInformationMessage(`Dashboard created from ${path.basename(filePath)}`);
@@ -135,30 +173,26 @@ export function deactivate() {}
 
 
 const getWebviewContent = (context: ExtensionContext, webview: Webview) => {
-	const jsFile = "webview.js";
-	const localServerUrl = "http://localhost:9000";
+	const scriptPath = Uri.file(join(context.extensionPath, 'out', 'main.wv.js'));
+	const scriptUri = webview.asWebviewUri(scriptPath);
 
-	let scriptUrl = null;
-	let cssUrl = null;
+	const cssPath = Uri.file(join(context.extensionPath, 'src', 'media', 'styles.css'));
+	const cssUri = webview.asWebviewUri(cssPath);
 
-	const isProduction = context.extensionMode === ExtensionMode.Production;
-	if (isProduction) {
-		scriptUrl = webview.asWebviewUri(Uri.file(join(context.extensionPath, 'dist', jsFile))).toString();
-	} else {
-		scriptUrl = `${localServerUrl}/${jsFile}`; 
-	}
+	const nonce = getNonce();
 
 	return `<!DOCTYPE html>
-	<html lang="en">
-	<head>
-		<meta charset="UTF-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		${isProduction ? `<link href="${cssUrl}" rel="stylesheet">` : ''}
-	</head>
-	<body>
-		<div id="root"></div>
-
-		<script src="${scriptUrl}"></script>
-	</body>
-	</html>`;
-}
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Panel Title Goes Here</title>
+        <link rel="stylesheet" href="${cssUri}">
+      </head>
+      <body>
+        <div id="root"></div>
+        <script nonce="${nonce}" src="${scriptUri}"></script>
+      </body>
+      </html>
+    `;
+};

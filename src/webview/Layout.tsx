@@ -9,6 +9,8 @@ const vscode = acquireVsCodeApi();
 
 // Define the types for the widgets
 interface Widget {
+  backend: string;
+  value: any;
   name: string;
   interval: number;
   x: number;
@@ -26,16 +28,7 @@ const Layout: React.FC = () => {
   const addWidget = (widget: Widget) => {
     setLayout((prevLayout) => [
       ...prevLayout,
-      {
-        name: widget.name,
-        interval: widget.interval,
-        x: widget.x,
-        y: widget.y,
-        w: widget.w,
-        h: widget.h,
-        type: widget.type,
-        props: widget.props,
-      },
+      widget,
     ]);
 
     if (widget.type === 'progress' && widget.interval > 0) {
@@ -43,9 +36,7 @@ const Layout: React.FC = () => {
         vscode.postMessage({
           command: 'REQUEST',
           payload: {
-            type: widget.type,
-            name: widget.name,
-            props: widget.props,
+           widget: widget,
           },
         });
       }, widget.interval);
@@ -62,8 +53,8 @@ const Layout: React.FC = () => {
       if (message.command === "UPDATE") {
         setLayout((prevLayout) =>
           prevLayout.map((widget) =>
-            widget.name === message.payload.name
-              ? { ...widget, props: message.payload.props }
+            widget.name === message.payload.widget.name
+              ? { ...message.payload.widget}
               : widget
           )
         );
@@ -76,6 +67,7 @@ const Layout: React.FC = () => {
     };
   }, []);
   const renderWidget = (widget: Widget) => {
+    console.log(widget);
     switch (widget.type) {
       case 'slider':
         {
@@ -84,9 +76,7 @@ const Layout: React.FC = () => {
           const handleChange = (event: Event, value: number | number[]) => {
             vscode.postMessage({
               command: 'UPDATE', payload: {
-                type: widget.type,
-                name: widget.name,
-                props: { value: value },
+                widget: widget,
               },
             });
           };
@@ -99,13 +89,14 @@ const Layout: React.FC = () => {
         }
       case 'progress':
         {
-          const { value, min, max } = widget.props; // Destructure progress-specific props
+          const { min, max } = widget.props; // Destructure progress-specific props
           const normalise = (val: number) => ((val - min) * 100) / (max - min);
-          console.warn(normalise(value));
+          console.error(widget.value);
+          console.warn(normalise(widget.value));
           return (
             <div style={{ textAlign: 'center' }}>
               <div style={{ marginBottom: '20px' }}>{widget.name}</div>
-              <CircularProgress variant="determinate" value={normalise(value)} />
+              <CircularProgress variant="determinate" value={normalise(widget.value)} />
             </div>
           );
         }

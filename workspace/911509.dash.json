@@ -2,8 +2,8 @@
   "widgets": [
     {
       "name": "EHA_T12_EXPULSION",
-      "backend": "echo 'SET BSP_DATA_EHA_T12_EXPULSION ${out}' | socat - TCP:localhost:12345",
-      "interval": 1000,
+      "backend": "powershell -Command \"Get-Random -Minimum -10 -Maximum 250\"",
+      "interval": 50,
       "type": "slider",
       "props": {
         "min": -10,
@@ -14,23 +14,24 @@
       "x": 0,
       "y": 0,
       "w": 12,
-      "h": 1
+      "h": 1,
+      "value": 0
     },
     {
       "name": "EHA_T22_EXPULSION",
-      "backend": "echo 'SET BSP_DATA_EHA_T12_EXPULSION ${out}' | socat - TCP:localhost:12345",
-      "interval": 1000,
+      "backend": "powershell -Command \"Get-Random -Minimum -10 -Maximum 250\"",
+      "interval": 200,
       "type": "progress",
       "props": {
         "min": -10,
         "max": 250,
-        "step": 1,
-        "value": 30
+        "step": 1
       },
       "x": 0,
       "y": 0,
       "w": 12,
-      "h": 1
+      "h": 1,
+      "value": 0
     }
   ]
 }
