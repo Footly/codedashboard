@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { useState, useEffect, useRef } from 'react';
 import * as GridLayout from "react-grid-layout";
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
@@ -17,32 +18,38 @@ interface Widget {
   y: number;
   w: number;
   h: number;
-  type: 'slider' | 'progress'; // Widget types: slider, tag, or badge
-  props: any; // The specific props for each widget type (could be slider value, tag text, etc.)
+  type: 'slider' | 'progress' | 'canvas'; // Include canvas type
+  props: any;
+  children?: Widget[]; // Optional children for canvas widgets
 }
 
-const Layout: React.FC = () => {
+const layoutComponent: React.FC = () => {
   const [layout, setLayout] = React.useState<Widget[]>([]);
   const intervalRefs = React.useRef<{ [key: string]: NodeJS.Timeout }>({});
 
   const addWidget = (widget: Widget) => {
     setLayout((prevLayout) => [
       ...prevLayout,
-      widget,
+      {
+        ...widget,
+        x: widget.x ?? 0,   // Default x position
+        y: widget.y ?? 0, // Auto-place at the bottom
+        w: widget.w ?? 2,   // Default width
+        h: widget.h ?? 2,   // Default height
+      },
     ]);
+
+    console.warn(widget);
 
     if (widget.type === 'progress' && widget.interval > 0) {
       intervalRefs.current[widget.name] = setInterval(() => {
         vscode.postMessage({
           command: 'REQUEST',
-          payload: {
-           widget: widget,
-          },
+          payload: { widget: widget },
         });
       }, widget.interval);
     }
   };
-
 
   React.useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
@@ -54,7 +61,7 @@ const Layout: React.FC = () => {
         setLayout((prevLayout) =>
           prevLayout.map((widget) =>
             widget.name === message.payload.widget.name
-              ? { ...message.payload.widget}
+              ? { ...message.payload.widget }
               : widget
           )
         );
@@ -66,14 +73,14 @@ const Layout: React.FC = () => {
       window.removeEventListener("message", handleMessage);
     };
   }, []);
+
+  // Recursive function to render widgets (including nested ones)
   const renderWidget = (widget: Widget) => {
-    console.log(widget);
     switch (widget.type) {
       case 'slider':
         {
           const { defaultValue, min, max, step } = widget.props; // Destructure slider-specific props
-
-          const handleChange = (event: Event, value: number | number[]) => {
+          const handleChange = () => {
             vscode.postMessage({
               command: 'UPDATE', payload: {
                 widget: widget,
@@ -82,21 +89,36 @@ const Layout: React.FC = () => {
           };
           return (
             <div style={{ textAlign: 'center' }}>
-              <div style={{ marginBottom: '20px' }}>{widget.name}</div>
+              <div>{widget.name}</div>
               <Slider defaultValue={defaultValue} min={min} max={max} step={step} valueLabelDisplay="on" onChange={handleChange} />
             </div>
           );
         }
       case 'progress':
         {
-          const { min, max } = widget.props; // Destructure progress-specific props
+          const { min, max } = widget.props;
           const normalise = (val: number) => ((val - min) * 100) / (max - min);
-          console.error(widget.value);
-          console.warn(normalise(widget.value));
           return (
             <div style={{ textAlign: 'center' }}>
-              <div style={{ marginBottom: '20px' }}>{widget.name}</div>
+              <div>{widget.name}</div>
               <CircularProgress variant="determinate" value={normalise(widget.value)} />
+            </div>
+          );
+        }
+      case 'canvas': // Special case for canvas (container) widgets
+        {
+          return (
+            <div style={{
+              border: '2px solid #ccc',
+              backgroundColor: '#f9f9f9',
+              textAlign: 'center',
+              position: 'relative',
+            }}>
+              <div>{widget.name}</div>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {/* Render children widgets inside the canvas */}
+                {widget.children && widget.children.length > 0 && renderLayout(widget.children)}
+              </div>
             </div>
           );
         }
@@ -105,15 +127,40 @@ const Layout: React.FC = () => {
     }
   };
 
-  return (
-    <GridLayout className="layout" cols={12} rowHeight={30} width={1200}>
-      {layout.map((widget) => (
-        <div key={widget.name} data-grid={{ x: widget.x, y: widget.y, w: widget.w, h: widget.h }}>
-          {renderWidget(widget)} {/* Render the widget */}
-        </div>
-      ))}
-    </GridLayout>
-  );
+  const renderLayout = (layout: Widget[]) => {
+    // Map the widgets to a layout array for GridLayout
+    const gridLayout = layout.map((widget) => {
+      if (widget.x === null || widget.y === null || widget.w === null || widget.h === null) {
+        console.error(`Widget ${widget.name} has invalid properties:`, widget);
+        return null;
+      }
+      return {
+        i: widget.name, // Unique key for each widget
+        x: widget.x,
+        y: widget.y,
+        w: widget.w,
+        h: widget.h,
+      };
+    }).filter(Boolean); // Filter out invalid widgets
+  
+    return (
+      <GridLayout
+        className="layout"
+        layout={gridLayout as any} // Pass the layout array to GridLayout
+        cols={12}
+        rowHeight={30}
+        width={1200}
+      >
+        {layout.map((widget) => (
+          <div key={widget.name}>
+            {renderWidget(widget)}
+          </div>
+        ))}
+      </GridLayout>
+    );
+  };
+  
+  return <>{renderLayout(layout)}</>;
 };
 
-export default Layout;
+export default layoutComponent;

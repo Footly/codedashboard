@@ -1,10 +1,61 @@
 {
   "widgets": [
     {
-      "name": "EHA_T12_EXPULSION",
-      "backend": "powershell -Command \"Get-Random -Minimum -10 -Maximum 250\"",
-      "interval": 50,
-      "type": "slider",
+      "name": "TOM",
+      "backend": "C:\\Users\\narcis.oriol\\test.bat",
+      "interval": 1000000,
+      "type": "progress",
+      "props": {
+        "min": -10,
+        "max": 250,
+        "step": 1,
+        "defaultValue": 30
+      },
+      "x": 0,
+      "y": 4,
+      "w": 4,
+      "h": 4,
+      "value": 0
+    },
+    {
+      "name": "JERRY",
+      "backend": "C:\\Users\\narcis.oriol\\test.bat",
+      "interval": 1000000,
+      "type": "progress",
+      "props": {
+        "min": -10,
+        "max": 250,
+        "step": 1,
+        "defaultValue": 30
+      },
+      "x": 0,
+      "y": 4,
+      "w": 4,
+      "h": 4,
+      "value": 0
+    },
+    {
+      "name": "SERGI",
+      "backend": "C:\\Users\\narcis.oriol\\test.bat",
+      "interval": 1000000,
+      "type": "progress",
+      "props": {
+        "min": -10,
+        "max": 250,
+        "step": 1,
+        "defaultValue": 30
+      },
+      "x": 0,
+      "y": 4,
+      "w": 4,
+      "h": 4,
+      "value": 0
+    },
+    {
+      "name": "NARCÍS",
+      "backend": "C:\\Users\\narcis.oriol\\test.bat",
+      "interval": 1000000,
+      "type": "canvas",
       "props": {
         "min": -10,
         "max": 250,
@@ -13,25 +64,62 @@
       },
       "x": 0,
       "y": 0,
-      "w": 12,
-      "h": 1,
-      "value": 0
-    },
-    {
-      "name": "EHA_T22_EXPULSION",
-      "backend": "powershell -Command \"Get-Random -Minimum -10 -Maximum 250\"",
-      "interval": 200,
-      "type": "progress",
-      "props": {
-        "min": -10,
-        "max": 250,
-        "step": 1
-      },
-      "x": 0,
-      "y": 0,
-      "w": 12,
-      "h": 1,
-      "value": 0
+      "w": 4,
+      "h": 4,
+      "value": 0,
+      "children": [
+        {
+          "name": "Progress 1",
+          "backend": "C:\\path\\to\\another.bat",
+          "interval": 10000000,
+          "type": "progress",
+          "props": {
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "defaultValue": 50
+          },
+          "x": 0,
+          "y": 0,
+          "w": 2,
+          "h": 2,
+          "value": 0
+        },
+        {
+          "name": "Progress 2",
+          "backend": "C:\\path\\to\\another.bat",
+          "interval": 10000000,
+          "type": "progress",
+          "props": {
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "defaultValue": 50
+          },
+          "x": 0,
+          "y": 0,
+          "w": 2,
+          "h": 2,
+          "value": 0
+        },
+        {
+          "name": "Progress 3",
+          "backend": "C:\\path\\to\\another.bat",
+          "interval": 10000000,
+          "type": "progress",
+          "props": {
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "defaultValue": 50
+          },
+          "x": 0,
+          "y": 0,
+          "w": 2,
+          "h": 2,
+          "value": 0
+        }
+      ]
     }
   ]
 }

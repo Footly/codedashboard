@@ -11,5 +11,3 @@ This is a starter template for creating a Visual Studio Code extension with a Re
 ## Usage
 
 The webview can be tested/opened by running the `React Webview: Open webview` command from the command palette.
-
-![](./assets/webview.png)

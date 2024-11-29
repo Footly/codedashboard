@@ -16,3 +16,23 @@ h1 {
 .app__error {
   color: var(--vscode-editorError-foreground);
 }
+
+.layout {
+  background-color: #f5f5f5; /* Light gray background */
+  border: 1px solid #ddd;    /* Subtle border */
+  border-radius: 5px;        /* Rounded corners */
+  padding: 10px;             /* Spacing around the grid */
+}
+.layout .react-grid-item {
+  background-color: #ffffff; /* White background for widgets */
+  border: 1px solid #ccc;    /* Subtle border */
+  border-radius: 5px;        /* Rounded corners */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Light shadow for depth */
+}
+.layout .react-grid-item:hover {
+  border-color: #007bff; /* Highlight border on hover */
+}
+.layout .react-grid-placeholder {
+  background: rgba(0, 123, 255, 0.3); /* Blue for placeholder */
+  border-radius: 5px;
+}

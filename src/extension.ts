@@ -5,13 +5,13 @@ import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode, Uri, Webview } from 'vscode';
 import * as fs from 'fs';
 import * as path from 'path';
-const { exec } = require('child_process');
+const { promisify } = require('util');
+const exec = promisify(require('child_process').exec);
 import { MessageHandlerData } from '@estruyf/vscode';
 
-
-function getNonce() : string {
-	let text : string = "";
-	const possible : string =
+function getNonce(): string {
+	let text: string = "";
+	const possible: string =
 		"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
 	for (let i = 0; i < 32; i++) {
 		text += possible.charAt(Math.floor(Math.random() * possible.length));
@@ -34,7 +34,7 @@ export function activate(context: vscode.ExtensionContext) {
 
 		panel.webview.onDidReceiveMessage(message => {
 			const { command, requestId, payload } = message;
-		
+
 			if (command === "GET_DATA") {
 				// Do something with the payload
 				// Send a response back to the webview
@@ -43,7 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
 					requestId, // The requestId is used to identify the response
 					payload: `Hello from the extension!`
 				} as MessageHandlerData<string>);
-			} else if (command === "GET_DATA_ERROR" ) {
+			} else if (command === "GET_DATA_ERROR") {
 				panel.webview.postMessage({
 					command,
 					requestId, // The requestId is used to identify the response
@@ -88,13 +88,12 @@ export function activate(context: vscode.ExtensionContext) {
 					}
 				);
 
-				//Create a listerner to receive messages from the webview
-				panel.webview.onDidReceiveMessage(message => {
+				panel.webview.onDidReceiveMessage(async (message) => {
 					const { command, requestId, payload } = message;
-				
+
 					if (command === "REQUEST") {
-						//Gte the payload widget backend
 						const backend = payload.widget.backend;
+
 						interface Message {
 							command: string;
 							requestId: string;
@@ -107,27 +106,21 @@ export function activate(context: vscode.ExtensionContext) {
 							};
 						}
 
-						exec((backend as string), (error: Error | null, stdout: string, stderr: string) => {
-							if (error) {
-								vscode.window.showErrorMessage(`Error executing command: ${error.message}`);
-								return;
-							}
-							if (stderr) {
-								vscode.window.showWarningMessage(`Command completed with warnings: ${stderr}`);
-							}
-							const cloneWidget = { ...payload.widget };
-							//Cjamhe the cloneWidget.value to the stdout
-							cloneWidget.value = stdout;
-							panel.webview.postMessage({
-								command: 'UPDATE',
-								payload: {
-									widget: cloneWidget
-								}
-							} as Message);
+						const {stdout} = await exec(backend);
+						const cloneWidget = { ...payload.widget };
+						// Set the cloneWidget value to the stdout
+						cloneWidget.value = stdout;
 
-							// Optionally, show the result in VS Code UI
-							vscode.window.showInformationMessage(`Command executed successfully: ${stdout}`);
-						});
+						const data: Message = {
+							command: "UPDATE",
+							requestId,
+							payload: {
+								widget: cloneWidget,
+							},
+						};
+						// Optionally, show the result in VS Code UI
+						vscode.window.showInformationMessage(`Command executed successfully: ${stdout}`);
+						panel.webview.postMessage(data);
 					}
 				}, undefined, context.subscriptions);
 
@@ -165,11 +158,11 @@ export function activate(context: vscode.ExtensionContext) {
 
 	context.subscriptions.push(openDashboardWith);
 	context.subscriptions.push(disposable);
-	
+
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }
 
 
 const getWebviewContent = (context: ExtensionContext, webview: Webview) => {
